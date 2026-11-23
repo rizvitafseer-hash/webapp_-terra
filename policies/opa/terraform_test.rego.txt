@@ -1,0 +1,42 @@
+
+package terraform
+
+import rego.v1
+
+test_public_ssh_is_denied if {
+    deny[_] with input as {
+        "resource_changes": [{
+            "type": "google_compute_firewall",
+            "change": {
+                "after": {
+                    "direction": "INGRESS",
+                    "allow": [{
+                        "protocol": "tcp",
+                        "ports": ["22"]
+                    }],
+                    "source_ranges": ["0.0.0.0/0"]
+                }
+            }
+        }]
+    }
+}
+
+test_public_ssh_policy_message if {
+    some msg in deny
+    contains(msg, "Public SSH")
+    with input as {
+        "resource_changes": [{
+            "type": "google_compute_firewall",
+            "change": {
+                "after": {
+                    "direction": "INGRESS",
+                    "allow": [{
+                        "protocol": "tcp",
+                        "ports": ["22"]
+                    }],
+                    "source_ranges": ["0.0.0.0/0"]
+                }
+            }
+        }]
+    }
+}

@@ -1,0 +1,5 @@
+
+project_id      = "project-3d116623-b2e3-4d71-83e"
+region          = "us-central1"
+zone            = "us-central1-a"
+app_bucket_name = "rizvi-nic-dev-app-data-2026"

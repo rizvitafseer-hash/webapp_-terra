@@ -1,0 +1,41 @@
+package terraform
+
+import rego.v1
+
+deny contains msg if {
+    some rc in input.resource_changes
+    rc.type == "google_compute_firewall"
+    rc.change.after.direction == "INGRESS"
+    rc.change.after.allow[_].protocol == "tcp"
+    rc.change.after.allow[_].ports[_] == "22"
+    "0.0.0.0/0" in rc.change.after.source_ranges
+
+    msg := "Public SSH access is prohibited"
+}
+
+deny contains msg if {
+    some rc in input.resource_changes
+    rc.type == "google_storage_bucket"
+    rc.change.after.uniform_bucket_level_access != true
+
+    msg := "GCS bucket must enforce UBLA"
+}
+
+deny contains msg if {
+    some rc in input.resource_changes
+    rc.type == "google_storage_bucket"
+    rc.change.after.public_access_prevention != "enforced"
+
+    msg := "GCS bucket must enforce Public Access Prevention"
+}
+
+deny contains msg if {
+    some rc in input.resource_changes
+    rc.type == "google_project_iam_member"
+    rc.change.after.role in [
+        "roles/owner",
+        "roles/editor"
+    ]
+
+    msg := "Project-wide Owner/Editor roles are prohibited"
+}
